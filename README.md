@@ -1,94 +1,60 @@
-# Base120
+# Base120 Corpus Validator (System B)
 
-Base120 is a deterministic governance substrate for system design, 
-validation,
-and execution.
+## Purpose
+This repository declares **System B**: a governed project whose sole purpose is to validate the **Base120 corpus itself** (the 120-model mental model dataset), as distinct from validating artifacts *about* Base120.
 
-## Authority Statement
+This system exists to close the architectural loop between:
+- Base120 as a **sealed canonical specification** (System A), and
+- Downstream systems that **consume, analyze, or extend** the Base120 corpus.
 
-This repository is the authoritative reference implementation for Base120 
-v1.0.0.
-All other language implementations are semantics mirrors and MUST conform 
-exactly
-to the outputs defined here.
+No validation logic is implemented at this stage. This repository is declarative only.
 
-## Canonical Authority
+---
 
-This repository is the authoritative, executable reference for Base120 v1.x.
-All other language implementations are semantic mirrors and MUST match the
-outputs defined by the golden corpus in `tests/corpus`.
+## Trust Anchor
+System B treats the following as immutable trust anchors:
 
-## Versioning
+- **Canonical seed:** Base120 v1.0.0 corpus JSON  
+- **Source repository:** [`hummbl-dev/base120`](https://github.com/hummbl-dev/base120)
+- **Seed hash (SHA-256):** Verified against `artifacts/base120.v1.0.0.seed.sha256`
+- **Compliance artifact:** Canonical MRCC issued by System A
 
-- v1.0.0 — semantic specification freeze
-- v1.0.0-post-ci — CI-stabilized, corpus-verified release (recommended)
+All future validation work, if any, MUST verify against this exact seed and hash.
 
-## Observability
+---
 
-Base120 v1.0.0 includes a **minimal, semantics-preserving observability layer** 
-for production deployments. This layer:
+## Scope
+**In scope**
+- Declaring governance boundaries for corpus-level validation
+- Referencing the sealed Base120 v1.0.0 seed as an external dependency
+- Serving as an architectural anchor for downstream research systems
 
-- **Emits structured JSON events** for validation success and failure
-- **Is opt-in** via an optional `event_sink` parameter (backward compatible)
-- **Uses standard library only** (no runtime dependencies)
-- **Never affects validation semantics** or determinism
+**Out of scope**
+- Modifying the Base120 seed
+- Reinterpreting or extending Base120 semantics
+- Implementing validators, schemas, CI, or tooling
+- Making compliance claims about Base120 itself
 
-### Quick Start
+Downstream systems MUST follow the [90-Day Integration Template](docs/downstream-integration-template.md).
 
-```python
-from base120.validators.validate import validate_artifact
-from base120.observability import create_event_sink
-import json
+---
 
-# Load schemas and registries
-with open("schemas/v1.0.0/artifact.schema.json") as f:
-    schema = json.load(f)
-with open("registries/mappings.json") as f:
-    mappings = json.load(f)
-with open("registries/err.json") as f:
-    err_registry = json.load(f)["registry"]
+## Non-Inheritance
+This repository **does not inherit** governance rules, freeze mechanics, or failure modes from the Base120 artifact-validation system.
 
-# Create event sink (logs to stdout)
-event_sink = create_event_sink()
+Specifically:
+- FM1–FM30 semantics do **not** apply
+- Registry-freeze rules do **not** apply
+- Canonical authority remains exclusively with `hummbl-dev/base120`
 
-# Validate with observability
-artifact = {"id": "test-001", "domain": "core", "class": "example", 
-            "instance": "test", "models": ["FM1"]}
-errors = validate_artifact(artifact, schema, mappings, err_registry, 
-                          event_sink=event_sink)
-```
+System B is independently governed.
 
-### Event Schema
+---
 
-Each validation emits one `validator_result` event:
+## Status
+- **Lifecycle:** Pre-canonical
+- **Versioning:** Independent (`v0.x`)
+- **Authority:** Declarative only
+- **Change posture:** Prohibitive by default
 
-```json
-{
-  "event_type": "validator_result",
-  "artifact_id": "artifact-001",
-  "schema_version": "v1.0.0",
-  "result": "success",
-  "error_codes": [],
-  "failure_mode_ids": [],
-  "timestamp": "2026-01-02T22:15:00.123456Z"
-}
-```
-
-### Documentation
-
-- **Full specification:** [`docs/observability.md`](docs/observability.md)
-- **Event schema:** Fields, guarantees, and integration patterns
-- **Governance status:** Part of v1.0.x contract (Indicated work per FM19)
-
-### Backward Compatibility
-
-Omitting `event_sink` (default) preserves original v1.0.0 behavior with no 
-observability overhead:
-
-```python
-# No events emitted, identical to original v1.0.0
-errors = validate_artifact(artifact, schema, mappings, err_registry)
-```
-
-This observability layer addresses **FM19 (Observability Failure)** from the 
-Base120 governance framework and is production-ready for deployment monitoring.
+No claims are made, implicitly or explicitly, about Base120 v1.0.0 beyond referencing it as a sealed external artifact.
